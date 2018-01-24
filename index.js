@@ -33,8 +33,7 @@ export default class PhotoUpload extends React.Component {
     height: this.props.height || 300,
     width: this.props.width || 300,
     format: this.props.format || 'JPEG',
-    quality: this.props.quality || 80,
-    buttonDisabled: false
+    quality: this.props.quality || 80
   }
 
   options = {
@@ -46,53 +45,37 @@ export default class PhotoUpload extends React.Component {
   }
 
   openImagePicker = () => {
-    this.setState({buttonDisabled: true})
     if (this.props.onStart) this.props.onStart()
 
     // get image from image picker
     ImagePicker.showImagePicker(this.options, async response => {
-      this.setState({buttonDisabled: false})
       console.log('Response = ', response)
-      let rotation = 0 
-      const {originalRotation} = response
-      
 
       if (this.props.onResponse) this.props.onResponse(response)
 
       if (response.didCancel) {
         console.log('User cancelled image picker')
-        if (this.props.onCancel) this.props.onCancel('User cancelled image picker')
+        this.props.onCancel('User cancelled image picker')
         return
       } else if (response.error) {
         console.log('ImagePicker Error: ', response.error)
-        if (this.props.onError) this.props.onError(response.error)
+        this.props.onError(response.error)
         return
       } else if (response.customButton) {
         console.log('User tapped custom button: ', response.customButton)
-        if (this.props.onTapCustomButton) this.props.onTapCustomButton(response.customButton)
+        this.props.onTapCustomButton(response.customButton)
         return
       }
 
       let { height, width, quality, format } = this.state
-      
-      //Determining rotation param
-      if ( originalRotation === 90) { 
-        rotation = 90 
-      } else if (originalRotation === 180) { 
-        //For a few images rotation is 180. 
-        rotation = -180 
-      } else if ( originalRotation === 270 )  {
-        //When taking images with the front camera (selfie), the rotation is 270.
-        rotation = -90 
-      }
+
       // resize image
       const resizedImageUri = await ImageResizer.createResizedImage(
         `data:image/jpeg;base64,${response.data}`,
         height,
         width,
         format,
-        quality,
-        rotation
+        quality
       )
 
       if (this.props.onResizedImageUri) this.props.onResizedImageUri(resizedImageUri)
@@ -104,22 +87,22 @@ export default class PhotoUpload extends React.Component {
       // convert image back to base64 string
       const photoData = await RNFS.readFile(filePath, 'base64')
       let source = { uri: resizedImageUri.uri }
-      this.setState({
+      /*this.setState({
         avatarSource: source
-      })
+      })*/
 
       // handle photo in props functions as data string
-      if (this.props.onPhotoSelect) this.props.onPhotoSelect(photoData)
+      if (this.props.onPhotoSelect) this.props.onPhotoSelect(photoData, source)
     })
   }
 
   renderChildren = props => {
     return React.Children.map(props.children, child => {
-      if (child.type === Image && this.state.avatarSource) {
+      /*if (child.type === Image && this.state.avatarSource) {
         return React.cloneElement(child, {
           source: this.state.avatarSource
         })
-      } else return child
+      } else*/ return child
     })
   }
 
@@ -130,11 +113,8 @@ export default class PhotoUpload extends React.Component {
   render() {
     return (
       <View style={[styles.container, this.props.containerStyle]}>
-        <TouchableOpacity
-          onPress={this.openImagePicker}
-          disabled={this.state.buttonDisabled}
-        >
-          {this.renderChildren(this.props)}
+        <TouchableOpacity onPress={this.openImagePicker}>
+          {this.props.children}
         </TouchableOpacity>
       </View>
     )
