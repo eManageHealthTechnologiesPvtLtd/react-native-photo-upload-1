@@ -49,20 +49,20 @@ export default class PhotoUpload extends React.Component {
 
     // get image from image picker
     ImagePicker.showImagePicker(this.options, async response => {
-      console.log('Response = ', response)
+      // console.log('Response = ', response)
 
       if (this.props.onResponse) this.props.onResponse(response)
 
       if (response.didCancel) {
-        console.log('User cancelled image picker')
+        // console.log('User cancelled image picker')
         this.props.onCancel('User cancelled image picker')
         return
       } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error)
+        // console.log('ImagePicker Error: ', response.error)
         this.props.onError(response.error)
         return
       } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton)
+        // console.log('User tapped custom button: ', response.customButton)
         this.props.onTapCustomButton(response.customButton)
         return
       }
